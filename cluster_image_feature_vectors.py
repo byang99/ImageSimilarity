@@ -47,16 +47,25 @@ from scipy import spatial
 #write to csv file
 import csv
 
+#statistics - median, mean
+import statistics
+
 #################################################
-
-
+'''
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import NearestNeighbors
+from sklearn.model_selection import train_test_split
+from imutils import paths
+import imutils
+import os
+'''
 
 class PredictSofaPrices(object):
     
     def __init__(self):
         # Configuring annoy parameters
         self.dims = 1792
-        self.n_nearest_neighbors = 5
+        self.n_nearest_neighbors = 500
         self.trees = 10000
         
         self.t = AnnoyIndex(self.dims, metric = 'angular')
@@ -222,9 +231,11 @@ class PredictSofaPrices(object):
         
         #Loops through the nearest neighbors of the master item to
         #get an average price
+        
         total = 0;
         count = self.n_nearest_neighbors
-
+        prices = []
+        
         for j in nearest_neighbors:
             #Assigns file_name, image feature vectors and product id values of the similar item
             #neighbor_file_name = file_index_to_file_name[j]
@@ -234,6 +245,8 @@ class PredictSofaPrices(object):
             neighbor_price = Decimal(neighbor_product_id.replace('$','').replace(',',''))
         
             total += neighbor_price
+            
+            prices.append(neighbor_price)
             #Calculates the similarity score of the similar item
             #similarity = 1 - spatial.distance.cosine(master_vector, neighbor_file_vector)
             #rounded_similarity = int((similarity * 10000)) / 10000.0
@@ -244,11 +257,49 @@ class PredictSofaPrices(object):
             #  'similarity': rounded_similarity,
             #  'master_pi': master_product_id,
             #  'similar_pi': neighbor_product_id})
-        
-        predicted_price = total / count
+        '''
+        total = 0
+        count = self.n_nearest_neighbors
+
+        for price in prices:
+            if 0 <= price < 500:
+                total += float(price) * 0.148987714
+            elif 500 <= price < 1000:
+                total += float(price) * 0.377227894
+            elif 1000 <= price < 1500:
+                total += float(price) * 0.216646479
+            elif 1500 <= price < 2000:
+                total += float(price) * 0.106592836
+            elif 2000 <= price < 2500:
+                total += float(price) * 0.057103305
+            elif 2500 <= price < 3000:
+                total += float(price) * 0.03789583
+            elif 3000 <= price < 3500:
+                total += float(price) * 0.022841322
+            elif 3500 <= price < 4000:
+                total += float(price) * 0.015054508
+            elif 4000 <= price < 4500:
+                total += float(price) * 0.008652016
+            elif 4500 <= price < 5000:
+                total += float(price) * 0.003979927
+            elif 5000 <= price < 5500:
+                total += float(price) * 0.002249524
+            elif 5500 <= price < 6000:
+                total += float(price) * 0.001038242
+            elif 6000 <= price < 6500:
+                total += float(price) * 0.000692161
+            elif price >= 6500:
+                total += float(price) * 0.001038242
+        '''
+        avg = float(total / count)
+        predicted_price = float(statistics.median(prices))
+
+        #predicted_price = total / count
         print("Predicted Price: ${:,.2f}".format(predicted_price))
         #print("--- %.2f minutes passed ---------" % ((time.time() - start_time)/60))
-        return predicted_price
+        return Decimal(predicted_price)
+    
+    
         '''
         print("---------------------------------") 
         print("Similarity index       : %s" %i)
